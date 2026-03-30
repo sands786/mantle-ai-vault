@@ -3,5 +3,8 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
   "installCommand": "npm install -g pnpm && pnpm install --no-frozen-lockfile",
-  "framework": null
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" }
+  ]
 }
