@@ -1,25 +1,25 @@
 import { 
   int, 
-  mysqlEnum, 
-  mysqlTable, 
+  pgEnum, 
+  pgTable, 
   text, 
   timestamp, 
   varchar,
   decimal,
   json,
   boolean
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 
 /**
  * Core user table backing auth flow.
  */
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
+export const users = pgTable("users", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: pgEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -31,20 +31,20 @@ export type InsertUser = typeof users.$inferInsert;
 /**
  * AI Vaults - User's multi-protocol yield optimization vaults
  */
-export const aiVaults = mysqlTable("ai_vaults", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+export const aiVaults = pgTable("ai_vaults", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  userId: integer("userId").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   
   // Risk profile: conservative, moderate, aggressive
-  riskLevel: mysqlEnum("riskLevel", ["conservative", "moderate", "aggressive"]).default("moderate").notNull(),
+  riskLevel: pgEnum("riskLevel", ["conservative", "moderate", "aggressive"]).default("moderate").notNull(),
   
   // Investment goals: yield, growth, stability
-  investmentGoal: mysqlEnum("investmentGoal", ["yield", "growth", "stability"]).default("yield").notNull(),
+  investmentGoal: pgEnum("investmentGoal", ["yield", "growth", "stability"]).default("yield").notNull(),
   
   // Vault status
-  status: mysqlEnum("status", ["active", "paused", "closed"]).default("active").notNull(),
+  status: pgEnum("status", ["active", "paused", "closed"]).default("active").notNull(),
   
   // Financial metrics
   totalValueUSD: decimal("totalValueUSD", { precision: 18, scale: 2 }).default("0").notNull(),
@@ -60,7 +60,7 @@ export const aiVaults = mysqlTable("ai_vaults", {
   
   // Smart contract reference
   smartContractAddress: varchar("smartContractAddress", { length: 42 }),
-  mantle_chain_id: int("mantle_chain_id").default(5000), // Mantle mainnet
+  mantle_chain_id: integer("mantle_chain_id").default(5000), // Mantle mainnet
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -72,12 +72,12 @@ export type InsertAIVault = typeof aiVaults.$inferInsert;
 /**
  * Vault Allocations - Current allocation across protocols
  */
-export const vaultAllocations = mysqlTable("vault_allocations", {
-  id: int("id").autoincrement().primaryKey(),
-  vaultId: int("vaultId").notNull(),
+export const vaultAllocations = pgTable("vault_allocations", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  vaultId: integer("vaultId").notNull(),
   
   // Protocol: rivera, merchant_moe, agni
-  protocol: mysqlEnum("protocol", ["rivera", "merchant_moe", "agni"]).notNull(),
+  protocol: pgEnum("protocol", ["rivera", "merchant_moe", "agni"]).notNull(),
   
   // Allocation details
   amountUSD: decimal("amountUSD", { precision: 18, scale: 2 }).default("0").notNull(),
@@ -104,9 +104,9 @@ export type InsertVaultAllocation = typeof vaultAllocations.$inferInsert;
 /**
  * Performance History - Track vault performance over time
  */
-export const performanceHistory = mysqlTable("performance_history", {
-  id: int("id").autoincrement().primaryKey(),
-  vaultId: int("vaultId").notNull(),
+export const performanceHistory = pgTable("performance_history", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  vaultId: integer("vaultId").notNull(),
   
   // Daily snapshot
   snapshotDate: timestamp("snapshotDate").notNull(),
@@ -132,8 +132,8 @@ export type InsertPerformanceHistory = typeof performanceHistory.$inferInsert;
 /**
  * Market Sentiment Analysis - AI-driven market analysis results
  */
-export const sentimentAnalysis = mysqlTable("sentiment_analysis", {
-  id: int("id").autoincrement().primaryKey(),
+export const sentimentAnalysis = pgTable("sentiment_analysis", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   
   // Sentiment score: -1.0 (very bearish) to 1.0 (very bullish)
   sentimentScore: decimal("sentimentScore", { precision: 3, scale: 2 }).notNull(),
@@ -148,7 +148,7 @@ export const sentimentAnalysis = mysqlTable("sentiment_analysis", {
   dataSources: json("dataSources"), // Array of sources: news, social, on-chain
   
   // Recommendation
-  recommendation: mysqlEnum("recommendation", ["buy", "hold", "sell"]).notNull(),
+  recommendation: pgEnum("recommendation", ["buy", "hold", "sell"]).notNull(),
   
   // Protocol-specific sentiment
   protocolSentiments: json("protocolSentiments"), // { rivera: 0.5, merchant_moe: 0.3, agni: 0.6 }
@@ -162,9 +162,9 @@ export type InsertSentimentAnalysis = typeof sentimentAnalysis.$inferInsert;
 /**
  * Rebalancing Recommendations - AI-generated rebalancing suggestions
  */
-export const rebalancingRecommendations = mysqlTable("rebalancing_recommendations", {
-  id: int("id").autoincrement().primaryKey(),
-  vaultId: int("vaultId").notNull(),
+export const rebalancingRecommendations = pgTable("rebalancing_recommendations", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  vaultId: integer("vaultId").notNull(),
   
   // Current allocation
   currentAllocation: json("currentAllocation").notNull(), // { rivera: 30, merchant_moe: 40, agni: 30 }
@@ -183,7 +183,7 @@ export const rebalancingRecommendations = mysqlTable("rebalancing_recommendation
   riskScore: decimal("riskScore", { precision: 3, scale: 2 }).notNull(), // 0-1.0
   
   // Status
-  status: mysqlEnum("status", ["pending", "accepted", "rejected", "executed"]).default("pending").notNull(),
+  status: pgEnum("status", ["pending", "accepted", "rejected", "executed"]).default("pending").notNull(),
   
   // Execution details (if executed)
   executedAt: timestamp("executedAt"),
@@ -199,11 +199,11 @@ export type InsertRebalancingRecommendation = typeof rebalancingRecommendations.
 /**
  * Protocol Yields - Real-time APY data from each protocol
  */
-export const protocolYields = mysqlTable("protocol_yields", {
-  id: int("id").autoincrement().primaryKey(),
+export const protocolYields = pgTable("protocol_yields", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   
   // Protocol
-  protocol: mysqlEnum("protocol", ["rivera", "merchant_moe", "agni"]).notNull(),
+  protocol: pgEnum("protocol", ["rivera", "merchant_moe", "agni"]).notNull(),
   
   // Pool/Vault identifier
   poolId: varchar("poolId", { length: 255 }).notNull(),
@@ -232,10 +232,10 @@ export type InsertProtocolYield = typeof protocolYields.$inferInsert;
 /**
  * Rebalancing History - Track all rebalancing events
  */
-export const rebalancingHistory = mysqlTable("rebalancing_history", {
-  id: int("id").autoincrement().primaryKey(),
-  vaultId: int("vaultId").notNull(),
-  recommendationId: int("recommendationId"),
+export const rebalancingHistory = pgTable("rebalancing_history", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  vaultId: integer("vaultId").notNull(),
+  recommendationId: integer("recommendationId"),
   
   // Before and after
   previousAllocation: json("previousAllocation").notNull(),
